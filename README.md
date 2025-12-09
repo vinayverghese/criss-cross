@@ -4,12 +4,19 @@ A native macOS app that triggers animations when your cursor moves between scree
 
 ## Features
 
-- Real-time mouse position monitoring
-- Automatic detection of screen transitions
-- Customizable animations when switching screens
-- Visual feedback with particle effects
-- Transition counter
-- System beep on transition
+- **Menu bar app** - Unobtrusive, always accessible
+- **Real-time monitoring** - Fast cursor tracking (20ms polling)
+- **Multiple animation modes**:
+  - At Cursor - Flash appears where you cross
+  - Screen Edge - Flash on the edge you enter
+  - Both - Combined effect
+- **Fully customizable**:
+  - Choose your own colors (primary, secondary, accent)
+  - 4 animation styles (Radial Burst, Linear Wave, Pulse, Ripple)
+  - Adjustable duration and thickness
+  - Toggle arrows and particles
+- **Smart detection** - Works with overlapping screens
+- **Silent operation** - No sounds
 
 ## How It Works
 
@@ -28,17 +35,22 @@ The app uses a timer-based polling approach to monitor mouse position every 100m
 
 ## Usage
 
-1. Launch the app
-2. Click "Start Monitoring" to begin tracking cursor movement
-3. Move your cursor between your MacBook screen and external monitor
-4. Watch the animation trigger each time you cross screen boundaries
+1. Launch the app - it appears in the menu bar (⟷ icon)
+2. Monitoring starts automatically
+3. Move your cursor between screens to see animations
+4. **Left-click** menu bar icon - View stats and controls
+5. **Right-click** menu bar icon - Open customization settings
 
 ## Customization
 
-You can customize the animation in `AnimationView.swift`:
-- Change colors, shapes, and effects
-- Adjust animation duration and timing
-- Add more particle effects or transitions
+Right-click the menu bar icon to access settings:
+
+- **Colors**: Pick custom colors for primary, secondary, and accent
+- **Animation Style**: Choose from 4 different styles
+- **Duration**: Adjust animation speed (0.2s - 1.5s)
+- **Edge Thickness**: Control flash width (10px - 50px)
+- **Options**: Toggle direction arrows and particle effects
+- **Reset**: Restore default settings anytime
 
 ## Requirements
 

@@ -14,6 +14,8 @@ class ScreenMonitor: ObservableObject {
     private var flashWindow: FlashOverlayWindow?
     private var lastMousePosition: NSPoint = .zero
 
+    var animationSettings: AnimationSettings?
+
     enum FlashType: String, CaseIterable {
         case cursor = "At Cursor"
         case edge = "Screen Edge"
@@ -115,19 +117,19 @@ class ScreenMonitor: ObservableObject {
             // Show flash animation - create fresh windows each time
             switch self.flashType {
             case .cursor:
-                let cursorWindow = FlashOverlayWindow()
+                let cursorWindow = FlashOverlayWindow(settings: self.animationSettings)
                 cursorWindow.showFlash(at: mousePosition, direction: direction)
             case .edge:
                 if let edge = edge {
-                    let edgeWindow = FlashOverlayWindow()
+                    let edgeWindow = FlashOverlayWindow(settings: self.animationSettings)
                     edgeWindow.showEdgeFlash(edge: edge, screen: newScreen)
                 }
             case .both:
-                let cursorWindow = FlashOverlayWindow()
+                let cursorWindow = FlashOverlayWindow(settings: self.animationSettings)
                 cursorWindow.showFlash(at: mousePosition, direction: direction)
                 if let edge = edge {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                        let edgeWindow = FlashOverlayWindow()
+                        let edgeWindow = FlashOverlayWindow(settings: self.animationSettings)
                         edgeWindow.showEdgeFlash(edge: edge, screen: newScreen)
                     }
                 }

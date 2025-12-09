@@ -16,6 +16,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
     var popover: NSPopover?
     var screenMonitor = ScreenMonitor()
+    var animationSettings = AnimationSettings()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Create menu bar item
@@ -27,14 +28,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 accessibilityDescription: "Screen Transition Animator")
             button.action = #selector(togglePopover)
             button.target = self
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
+
+        // Pass settings to monitor
+        screenMonitor.animationSettings = animationSettings
 
         // Create popover
         popover = NSPopover()
         popover?.contentSize = NSSize(width: 400, height: 550)
         popover?.behavior = .transient
         popover?.contentViewController = NSHostingController(
-            rootView: ContentView().environmentObject(screenMonitor)
+            rootView: ContentView()
+                .environmentObject(screenMonitor)
+                .environmentObject(animationSettings)
         )
 
         // Auto-start monitoring
@@ -42,12 +49,34 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func togglePopover() {
-        if let button = statusItem?.button {
+        guard let button = statusItem?.button else { return }
+
+        if let event = NSApp.currentEvent, event.type == .rightMouseUp {
+            // Right-click: show settings
+            showSettings()
+        } else {
+            // Left-click: toggle main popover
             if popover?.isShown == true {
                 popover?.performClose(nil)
             } else {
                 popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             }
         }
+    }
+
+    private func showSettings() {
+        let settingsWindow = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 400, height: 550),
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        settingsWindow.title = "Animation Settings"
+        settingsWindow.contentViewController = NSHostingController(
+            rootView: SettingsView().environmentObject(animationSettings)
+        )
+        settingsWindow.center()
+        settingsWindow.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 }
