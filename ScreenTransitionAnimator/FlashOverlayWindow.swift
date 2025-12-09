@@ -12,7 +12,7 @@ struct AnimationConfig {
     let showParticles: Bool
 
     init(from settings: AnimationSettings?) {
-        self.primaryColor = settings?.primaryColor ?? .cyan
+        self.primaryColor = settings?.primaryColor ?? Color(red: 0, green: 1, blue: 1)
         self.secondaryColor = settings?.secondaryColor ?? .blue
         self.accentColor = settings?.accentColor ?? .white
         self.animationStyle = settings?.animationStyle ?? .radialBurst

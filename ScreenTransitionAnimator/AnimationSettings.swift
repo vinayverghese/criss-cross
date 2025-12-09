@@ -35,7 +35,8 @@ class AnimationSettings: ObservableObject {
 
     init() {
         // Load saved values or use defaults
-        self.primaryColor = Self.loadColor(key: "primaryColor", default: .cyan)
+        self.primaryColor = Self.loadColor(
+            key: "primaryColor", default: Color(red: 0, green: 1, blue: 1))
         self.secondaryColor = Self.loadColor(key: "secondaryColor", default: .blue)
         self.accentColor = Self.loadColor(key: "accentColor", default: .white)
 

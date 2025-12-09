@@ -20,7 +20,7 @@ struct AnimationView: View {
             Circle()
                 .fill(
                     LinearGradient(
-                        gradient: Gradient(colors: [.cyan, .blue]),
+                        gradient: Gradient(colors: [Color(red: 0, green: 1, blue: 1), .blue]),
                         startPoint: .top,
                         endPoint: .bottom
                     )

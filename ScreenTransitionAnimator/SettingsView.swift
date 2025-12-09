@@ -94,7 +94,7 @@ struct SettingsView: View {
     }
 
     private func resetToDefaults() {
-        settings.primaryColor = .cyan
+        settings.primaryColor = Color(red: 0, green: 1, blue: 1)
         settings.secondaryColor = .blue
         settings.accentColor = .white
         settings.animationStyle = .radialBurst

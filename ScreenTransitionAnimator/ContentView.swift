@@ -48,7 +48,7 @@ struct ContentView: View {
                         screenMonitor.startMonitoring()
                     }
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.bordered)
                 .frame(maxWidth: .infinity)
 
                 HStack(spacing: 8) {
