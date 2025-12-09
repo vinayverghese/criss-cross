@@ -90,7 +90,7 @@ struct SettingsView: View {
             }
             .padding()
         }
-        .frame(width: 400, height: 550)
+        .frame(minWidth: 450, minHeight: 600)
     }
 
     private func resetToDefaults() {

@@ -56,7 +56,7 @@ Right-click the menu bar icon to access settings:
 
 - macOS 13.0 or later
 - Xcode 14.0 or later
-- Swift 5.0 or later
+- Swift 5.0 or laterHi
 
 ## Notes
 

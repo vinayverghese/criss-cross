@@ -65,18 +65,9 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity)
                 }
             }
-
-            Divider()
-                .padding(.vertical)
-
-            Text("Animation Preview")
-                .font(.headline)
-
-            AnimationView(shouldAnimate: $screenMonitor.shouldTriggerAnimation)
-                .frame(width: 300, height: 200)
         }
         .padding(40)
-        .frame(minWidth: 400, minHeight: 550)
+        .frame(minWidth: 400, minHeight: 280)
     }
 
     @State private var settingsWindowController: NSWindowController?
@@ -91,18 +82,20 @@ struct ContentView: View {
 
         // Create new window
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 450, height: 600),
+            contentRect: NSRect(x: 0, y: 0, width: 480, height: 650),
             styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
             defer: false
         )
         window.title = "Animation Settings"
+        window.minSize = NSSize(width: 450, height: 600)
         window.center()
 
         let hostingController = NSHostingController(
             rootView: SettingsView().environmentObject(animationSettings)
         )
         window.contentViewController = hostingController
+        hostingController.view.frame = window.contentView?.bounds ?? .zero
 
         let controller = NSWindowController(window: window)
         settingsWindowController = controller
