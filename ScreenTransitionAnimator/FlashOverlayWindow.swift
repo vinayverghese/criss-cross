@@ -1,11 +1,33 @@
 import Cocoa
 import SwiftUI
 
+struct AnimationConfig {
+    let primaryColor: Color
+    let secondaryColor: Color
+    let accentColor: Color
+    let animationStyle: AnimationSettings.AnimationStyle
+    let animationDuration: Double
+    let flashThickness: CGFloat
+    let showArrow: Bool
+    let showParticles: Bool
+
+    init(from settings: AnimationSettings?) {
+        self.primaryColor = settings?.primaryColor ?? .cyan
+        self.secondaryColor = settings?.secondaryColor ?? .blue
+        self.accentColor = settings?.accentColor ?? .white
+        self.animationStyle = settings?.animationStyle ?? .radialBurst
+        self.animationDuration = settings?.animationDuration ?? 0.6
+        self.flashThickness = settings?.flashThickness ?? 20
+        self.showArrow = settings?.showArrow ?? true
+        self.showParticles = settings?.showParticles ?? true
+    }
+}
+
 class FlashOverlayWindow: NSWindow {
-    var settings: AnimationSettings?
+    var config: AnimationConfig
 
     init(settings: AnimationSettings? = nil) {
-        self.settings = settings
+        self.config = AnimationConfig(from: settings)
         super.init(
             contentRect: .zero,
             styleMask: [.borderless],
@@ -21,9 +43,11 @@ class FlashOverlayWindow: NSWindow {
         self.hasShadow = false
     }
 
-    func showFlash(at position: NSPoint, direction: TransitionDirection) {
+    func showFlash(
+        at position: NSPoint, direction: TransitionDirection, completion: (() -> Void)? = nil
+    ) {
         let hostingView = NSHostingView(
-            rootView: FlashAnimationView(direction: direction, settings: settings)
+            rootView: FlashAnimationView(direction: direction, config: config)
         )
         self.contentView = hostingView
 
@@ -35,26 +59,28 @@ class FlashOverlayWindow: NSWindow {
         self.orderFrontRegardless()
         self.alphaValue = 1.0
 
-        let duration = settings?.animationDuration ?? 0.8
+        let duration = config.animationDuration
 
         // Fade out and close
         NSAnimationContext.runAnimationGroup(
-            { context in
+            { [weak self] context in
                 context.duration = duration
-                self.animator().alphaValue = 0.0
+                self?.animator().alphaValue = 0.0
             },
-            completionHandler: {
-                self.orderOut(nil)
+            completionHandler: { [weak self] in
+                self?.orderOut(nil)
+                self?.contentView = nil
+                completion?()
             })
     }
 
-    func showEdgeFlash(edge: NSRectEdge, screen: NSScreen) {
-        let hostingView = NSHostingView(rootView: EdgeFlashView(edge: edge, settings: settings))
+    func showEdgeFlash(edge: NSRectEdge, screen: NSScreen, completion: (() -> Void)? = nil) {
+        let hostingView = NSHostingView(rootView: EdgeFlashView(edge: edge, config: config))
         self.contentView = hostingView
 
         let screenFrame = screen.frame
         var flashFrame: NSRect
-        let thickness = settings?.flashThickness ?? 20
+        let thickness = config.flashThickness
 
         switch edge {
         case .minX:  // Left edge
@@ -82,16 +108,18 @@ class FlashOverlayWindow: NSWindow {
         self.orderFrontRegardless()
         self.alphaValue = 1.0
 
-        let duration = settings?.animationDuration ?? 0.6
+        let duration = config.animationDuration
 
         // Fade out
         NSAnimationContext.runAnimationGroup(
-            { context in
+            { [weak self] context in
                 context.duration = duration
-                self.animator().alphaValue = 0.0
+                self?.animator().alphaValue = 0.0
             },
-            completionHandler: {
-                self.orderOut(nil)
+            completionHandler: { [weak self] in
+                self?.orderOut(nil)
+                self?.contentView = nil
+                completion?()
             })
     }
 }
@@ -102,7 +130,7 @@ enum TransitionDirection {
 
 struct FlashAnimationView: View {
     let direction: TransitionDirection
-    let settings: AnimationSettings?
+    let config: AnimationConfig
     @State private var scale: CGFloat = 0.5
     @State private var rotation: Double = 0
     @State private var particleOffsets: [CGFloat] = Array(repeating: 0, count: 8)
@@ -113,10 +141,10 @@ struct FlashAnimationView: View {
             animationBackground
 
             // Particles
-            if settings?.showParticles ?? true {
+            if config.showParticles {
                 ForEach(0..<8, id: \.self) { index in
                     Circle()
-                        .fill(settings?.accentColor ?? .white)
+                        .fill(config.accentColor)
                         .frame(width: 10, height: 10)
                         .offset(
                             x: cos(Double(index) * .pi / 4) * particleOffsets[index],
@@ -129,16 +157,16 @@ struct FlashAnimationView: View {
             }
 
             // Directional arrow
-            if settings?.showArrow ?? true {
+            if config.showArrow {
                 Image(systemName: arrowIcon)
                     .font(.system(size: 60, weight: .bold))
-                    .foregroundColor(settings?.accentColor ?? .white)
-                    .shadow(color: settings?.primaryColor ?? .cyan, radius: 10)
+                    .foregroundColor(config.accentColor)
+                    .shadow(color: config.primaryColor, radius: 10)
                     .rotationEffect(.degrees(rotation))
             }
         }
         .onAppear {
-            let duration = settings?.animationDuration ?? 0.8
+            let duration = config.animationDuration
 
             withAnimation(.spring(response: duration * 0.5, dampingFraction: 0.5)) {
                 scale = 2.0
@@ -148,7 +176,7 @@ struct FlashAnimationView: View {
             }
 
             // Animate particles
-            if settings?.showParticles ?? true {
+            if config.showParticles {
                 for i in 0..<8 {
                     withAnimation(.easeOut(duration: duration).delay(Double(i) * 0.05)) {
                         particleOffsets[i] = 100
@@ -160,59 +188,76 @@ struct FlashAnimationView: View {
 
     @ViewBuilder
     private var animationBackground: some View {
-        let style = settings?.animationStyle ?? .radialBurst
-        let primary = settings?.primaryColor ?? .cyan
-        let secondary = settings?.secondaryColor ?? .blue
-        let accent = settings?.accentColor ?? .white
-
-        switch style {
+        switch config.animationStyle {
         case .radialBurst:
-            RadialGradient(
-                gradient: Gradient(colors: [
-                    accent.opacity(0.9),
-                    primary.opacity(0.6),
-                    secondary.opacity(0.3),
-                    Color.clear,
-                ]),
-                center: .center,
-                startRadius: 0,
-                endRadius: 100
-            )
-            .scaleEffect(scale)
-
+            radialBurstView(
+                primary: config.primaryColor, secondary: config.secondaryColor,
+                accent: config.accentColor)
         case .linearWave:
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    accent.opacity(0.8),
-                    primary.opacity(0.6),
-                    secondary.opacity(0.4),
-                ]),
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-            .scaleEffect(scale)
-
+            linearWaveView(
+                primary: config.primaryColor, secondary: config.secondaryColor,
+                accent: config.accentColor)
         case .pulse:
-            Circle()
-                .fill(
-                    RadialGradient(
-                        gradient: Gradient(colors: [primary, secondary]),
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 50
-                    )
-                )
-                .scaleEffect(scale)
-                .opacity(2 - scale)
-
+            pulseView(primary: config.primaryColor, secondary: config.secondaryColor)
         case .ripple:
-            ZStack {
-                ForEach(0..<3) { i in
-                    Circle()
-                        .stroke(primary, lineWidth: 3)
-                        .scaleEffect(scale * (1 + CGFloat(i) * 0.3))
-                        .opacity(1 - (scale - 0.5) * (1 + CGFloat(i) * 0.3))
-                }
+            rippleView(primary: config.primaryColor)
+        }
+    }
+
+    private func radialBurstView(primary: Color, secondary: Color, accent: Color) -> some View {
+        let colors = [
+            accent.opacity(0.9),
+            primary.opacity(0.6),
+            secondary.opacity(0.3),
+            Color.clear,
+        ]
+        return RadialGradient(
+            gradient: Gradient(colors: colors),
+            center: .center,
+            startRadius: 0,
+            endRadius: 100
+        )
+        .scaleEffect(scale)
+    }
+
+    private func linearWaveView(primary: Color, secondary: Color, accent: Color) -> some View {
+        let colors = [
+            accent.opacity(0.8),
+            primary.opacity(0.6),
+            secondary.opacity(0.4),
+        ]
+        return LinearGradient(
+            gradient: Gradient(colors: colors),
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+        .scaleEffect(scale)
+    }
+
+    private func pulseView(primary: Color, secondary: Color) -> some View {
+        let gradient = RadialGradient(
+            gradient: Gradient(colors: [primary, secondary]),
+            center: .center,
+            startRadius: 0,
+            endRadius: 50
+        )
+        let opacity = 2 - scale
+        return Circle()
+            .fill(gradient)
+            .scaleEffect(scale)
+            .opacity(opacity)
+    }
+
+    private func rippleView(primary: Color) -> some View {
+        ZStack {
+            ForEach(0..<3, id: \.self) { i in
+                let scaleMultiplier = 1 + CGFloat(i) * 0.3
+                let rippleScale = scale * scaleMultiplier
+                let rippleOpacity = 1 - (scale - 0.5) * scaleMultiplier
+                Circle()
+                    .stroke(primary, lineWidth: 3)
+                    .scaleEffect(rippleScale)
+                    .opacity(rippleOpacity)
             }
         }
     }
@@ -230,7 +275,7 @@ struct FlashAnimationView: View {
 
 struct EdgeFlashView: View {
     let edge: NSRectEdge
-    let settings: AnimationSettings?
+    let config: AnimationConfig
     @State private var scale: CGFloat = 1.0
 
     var body: some View {
@@ -240,9 +285,9 @@ struct EdgeFlashView: View {
                 .fill(
                     LinearGradient(
                         gradient: Gradient(colors: [
-                            (settings?.accentColor ?? .white).opacity(0.9),
-                            (settings?.primaryColor ?? .cyan).opacity(0.8),
-                            (settings?.secondaryColor ?? .blue).opacity(0.7),
+                            config.accentColor.opacity(0.9),
+                            config.primaryColor.opacity(0.8),
+                            config.secondaryColor.opacity(0.7),
                         ]),
                         startPoint: gradientStart,
                         endPoint: gradientEnd
@@ -251,7 +296,7 @@ struct EdgeFlashView: View {
 
             // Glow effect
             Rectangle()
-                .fill(settings?.primaryColor ?? .cyan)
+                .fill(config.primaryColor)
                 .blur(radius: 10)
                 .opacity(0.6)
         }
@@ -259,7 +304,7 @@ struct EdgeFlashView: View {
             isVertical ? CGSize(width: 1.0, height: scale) : CGSize(width: scale, height: 1.0)
         )
         .onAppear {
-            let duration = settings?.animationDuration ?? 0.6
+            let duration = config.animationDuration
             withAnimation(.easeOut(duration: duration * 0.7)) {
                 scale = 0.3
             }

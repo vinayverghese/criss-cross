@@ -11,8 +11,8 @@ class ScreenMonitor: ObservableObject {
     private var eventMonitor: Any?
     private var currentScreen: NSScreen?
     private var timer: Timer?
-    private var flashWindow: FlashOverlayWindow?
     private var lastMousePosition: NSPoint = .zero
+    private var activeWindows: [FlashOverlayWindow] = []
 
     var animationSettings: AnimationSettings?
 
@@ -38,6 +38,13 @@ class ScreenMonitor: ObservableObject {
         isMonitoring = false
         timer?.invalidate()
         timer = nil
+
+        // Clean up any active windows
+        for window in activeWindows {
+            window.orderOut(nil)
+            window.contentView = nil
+        }
+        activeWindows.removeAll()
     }
 
     private func checkMousePosition() {
@@ -118,23 +125,40 @@ class ScreenMonitor: ObservableObject {
             switch self.flashType {
             case .cursor:
                 let cursorWindow = FlashOverlayWindow(settings: self.animationSettings)
-                cursorWindow.showFlash(at: mousePosition, direction: direction)
+                self.activeWindows.append(cursorWindow)
+                cursorWindow.showFlash(at: mousePosition, direction: direction) { [weak self] in
+                    self?.removeWindow(cursorWindow)
+                }
             case .edge:
                 if let edge = edge {
                     let edgeWindow = FlashOverlayWindow(settings: self.animationSettings)
-                    edgeWindow.showEdgeFlash(edge: edge, screen: newScreen)
+                    self.activeWindows.append(edgeWindow)
+                    edgeWindow.showEdgeFlash(edge: edge, screen: newScreen) { [weak self] in
+                        self?.removeWindow(edgeWindow)
+                    }
                 }
             case .both:
                 let cursorWindow = FlashOverlayWindow(settings: self.animationSettings)
-                cursorWindow.showFlash(at: mousePosition, direction: direction)
+                self.activeWindows.append(cursorWindow)
+                cursorWindow.showFlash(at: mousePosition, direction: direction) { [weak self] in
+                    self?.removeWindow(cursorWindow)
+                }
                 if let edge = edge {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                         let edgeWindow = FlashOverlayWindow(settings: self.animationSettings)
-                        edgeWindow.showEdgeFlash(edge: edge, screen: newScreen)
+                        self.activeWindows.append(edgeWindow)
+                        edgeWindow.showEdgeFlash(edge: edge, screen: newScreen) { [weak self] in
+                            self?.removeWindow(edgeWindow)
+                        }
                     }
                 }
             }
+        }
+    }
 
+    private func removeWindow(_ window: FlashOverlayWindow) {
+        DispatchQueue.main.async { [weak self] in
+            self?.activeWindows.removeAll { $0 === window }
         }
     }
 
@@ -232,5 +256,6 @@ class ScreenMonitor: ObservableObject {
 
     deinit {
         stopMonitoring()
+        activeWindows.removeAll()
     }
 }

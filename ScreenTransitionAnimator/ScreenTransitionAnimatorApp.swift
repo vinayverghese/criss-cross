@@ -17,6 +17,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var popover: NSPopover?
     var screenMonitor = ScreenMonitor()
     var animationSettings = AnimationSettings()
+    var settingsWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Create menu bar item
@@ -64,19 +65,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func showSettings() {
-        let settingsWindow = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 400, height: 550),
-            styleMask: [.titled, .closable],
+    func showSettings() {
+        print("showSettings called")
+
+        if let window = settingsWindow {
+            print("Reusing existing settings window")
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
+        print("Creating new settings window")
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 450, height: 600),
+            styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
             defer: false
         )
-        settingsWindow.title = "Animation Settings"
-        settingsWindow.contentViewController = NSHostingController(
+        window.title = "Animation Settings"
+        window.contentViewController = NSHostingController(
             rootView: SettingsView().environmentObject(animationSettings)
         )
-        settingsWindow.center()
-        settingsWindow.makeKeyAndOrderFront(nil)
+        window.center()
+        window.isReleasedWhenClosed = false
+        window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+
+        print("Settings window created and shown")
+        settingsWindow = window
     }
 }

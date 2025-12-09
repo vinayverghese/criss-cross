@@ -1,7 +1,9 @@
+import AppKit
 import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var screenMonitor: ScreenMonitor
+    @EnvironmentObject var animationSettings: AnimationSettings
 
     var body: some View {
         VStack(spacing: 20) {
@@ -38,7 +40,7 @@ struct ContentView: View {
             }
             .padding(.vertical, 8)
 
-            HStack(spacing: 12) {
+            VStack(spacing: 8) {
                 Button(screenMonitor.isMonitoring ? "Stop Monitoring" : "Start Monitoring") {
                     if screenMonitor.isMonitoring {
                         screenMonitor.stopMonitoring()
@@ -47,11 +49,21 @@ struct ContentView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                .frame(maxWidth: .infinity)
 
-                Button("Quit") {
-                    NSApplication.shared.terminate(nil)
+                HStack(spacing: 8) {
+                    Button("Customize...") {
+                        openSettings()
+                    }
+                    .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity)
+
+                    Button("Quit") {
+                        NSApplication.shared.terminate(nil)
+                    }
+                    .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.bordered)
             }
 
             Divider()
@@ -65,5 +77,37 @@ struct ContentView: View {
         }
         .padding(40)
         .frame(minWidth: 400, minHeight: 550)
+    }
+
+    @State private var settingsWindowController: NSWindowController?
+
+    private func openSettings() {
+        // Reuse existing window if available
+        if let controller = settingsWindowController, let window = controller.window {
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
+        // Create new window
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 450, height: 600),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "Animation Settings"
+        window.center()
+
+        let hostingController = NSHostingController(
+            rootView: SettingsView().environmentObject(animationSettings)
+        )
+        window.contentViewController = hostingController
+
+        let controller = NSWindowController(window: window)
+        settingsWindowController = controller
+
+        controller.showWindow(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 }

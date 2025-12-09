@@ -63,15 +63,30 @@ struct SettingsView: View {
                     .padding(.vertical, 8)
                 }
 
-                // Reset Button
-                Button(action: resetToDefaults) {
-                    HStack {
-                        Image(systemName: "arrow.counterclockwise")
-                        Text("Reset to Defaults")
+                // Action Buttons
+                HStack(spacing: 12) {
+                    Button(action: resetToDefaults) {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Reset to Defaults")
+                        }
+                        .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
+                    .buttonStyle(.bordered)
+
+                    Button(action: closeWindow) {
+                        HStack {
+                            Image(systemName: "checkmark")
+                            Text("Done")
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
                 }
-                .buttonStyle(.bordered)
+
+                Text("Changes apply instantly")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
             .padding()
         }
@@ -87,6 +102,12 @@ struct SettingsView: View {
         settings.flashThickness = 20
         settings.showArrow = true
         settings.showParticles = true
+    }
+
+    private func closeWindow() {
+        if let window = NSApp.keyWindow {
+            window.close()
+        }
     }
 }
 
