@@ -6,6 +6,8 @@
 	<true/>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
+	<key>CFBundleCategory</key>
+	<string>public.app-category.utilities</string>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>This app monitors mouse position to detect screen transitions and trigger animations.</string>
 </dict>

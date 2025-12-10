@@ -81,7 +81,7 @@ struct SettingsView: View {
                         }
                         .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.bordered)
                 }
 
                 Text("Changes apply instantly")
