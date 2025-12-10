@@ -13,6 +13,7 @@ class ScreenMonitor: ObservableObject {
     private var timer: Timer?
     private var lastMousePosition: NSPoint = .zero
     private var activeWindows: [FlashOverlayWindow] = []
+    private var lastTransitionTime: Date?
 
     var animationSettings: AnimationSettings?
 
@@ -110,6 +111,24 @@ class ScreenMonitor: ObservableObject {
     private func handleScreenTransition(
         from oldScreen: NSScreen, to newScreen: NSScreen, mousePosition: NSPoint
     ) {
+        // Throttle rapid transitions to prevent memory issues
+        let now = Date()
+        if let lastTransition = lastTransitionTime, now.timeIntervalSince(lastTransition) < 0.1 {
+            return  // Skip if less than 100ms since last transition
+        }
+        lastTransitionTime = now
+
+        // Limit active windows to prevent memory buildup
+        if activeWindows.count > 10 {
+            // Clean up oldest windows
+            let oldWindows = Array(activeWindows.prefix(5))
+            for window in oldWindows {
+                window.orderOut(nil)
+                window.contentView = nil
+            }
+            activeWindows.removeFirst(5)
+        }
+
         DispatchQueue.main.async {
             self.transitionCount += 1
             self.updateScreenName()
