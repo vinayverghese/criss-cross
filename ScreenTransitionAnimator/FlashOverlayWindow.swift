@@ -48,7 +48,10 @@ class FlashOverlayWindow: NSWindow {
     ) {
         let hostingView = NSHostingView(
             rootView: FlashAnimationView(direction: direction, config: config)
+                .background(Color.clear)
+                .clipShape(Circle())
         )
+        hostingView.layer?.backgroundColor = NSColor.clear.cgColor
         self.contentView = hostingView
 
         // Position window at cursor
@@ -165,6 +168,8 @@ struct FlashAnimationView: View {
                     .rotationEffect(.degrees(rotation))
             }
         }
+        .frame(width: 200, height: 200)
+        .background(Color.clear)
         .onAppear {
             let duration = config.animationDuration
 
