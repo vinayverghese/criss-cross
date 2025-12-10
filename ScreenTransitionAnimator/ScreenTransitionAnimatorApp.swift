@@ -20,6 +20,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var settingsWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Prevent multiple instances
+        if NSRunningApplication.runningApplications(
+            withBundleIdentifier: Bundle.main.bundleIdentifier ?? ""
+        ).count > 1 {
+            NSApp.terminate(nil)
+            return
+        }
+
         // Create menu bar item
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
@@ -93,5 +101,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         print("Settings window created and shown")
         settingsWindow = window
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool)
+        -> Bool
+    {
+        // Show popover when app is reopened (e.g., clicking dock icon)
+        if let button = statusItem?.button {
+            if popover?.isShown == true {
+                popover?.performClose(nil)
+            } else {
+                popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            }
+        }
+        return false
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        // Don't quit when windows close (menu bar app should stay running)
+        return false
     }
 }
