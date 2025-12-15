@@ -1,4 +1,4 @@
-# Screen Transition Animator
+# CrissCross
 
 A native macOS app that triggers animations when your cursor moves between screens (e.g., MacBook display to external monitor).
 
@@ -17,6 +17,11 @@ A native macOS app that triggers animations when your cursor moves between scree
   - Toggle arrows and particles
 - **Smart detection** - Works with overlapping screens
 - **Silent operation** - No sounds
+
+## Watch it in actiona
+
+https://github.com/user-attachments/assets/fd119e6e-a372-494c-bb7a-759d8f438090
+
 
 ## How It Works
 
