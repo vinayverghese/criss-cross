@@ -18,7 +18,7 @@ A native macOS app that triggers animations when your cursor moves between scree
 - **Smart detection** - Works with overlapping screens
 - **Silent operation** - No sounds
 
-## Watch it in actiona
+## Watch it in action
 
 https://github.com/user-attachments/assets/fd119e6e-a372-494c-bb7a-759d8f438090
 
